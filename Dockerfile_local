@@ -1,0 +1,46 @@
+# docker build -t gb28181p-alpine -f .\Dockerfile_local .
+FROM openjdk:8-oraclelinux8 AS build
+
+# 使用了自己的settings.xml作为maven的源,加快打包速度
+WORKDIR /home
+
+# 请自行下载 wvp 项目代码 以及编译工具
+# maven 下载地址:
+# https://dlcdn.apache.org/maven/maven-3/3.8.4/binaries/apache-maven-3.8.4-bin.tar.gz
+# 项目下载：
+# git clone https://gitee.com/pan648540858/wvp-GB28181.git
+
+COPY ./wvp-GB28181/src /home/src
+COPY ./wvp-GB28181/.git /home/.git
+COPY ./wvp-GB28181/pom.xml /home/pom.xml
+COPY application-docker.yml /opt/app/config/application.yml
+COPY maven/settings.xml /usr/share/maven/conf/settings.xml
+COPY apache-maven-3.8.4-bin.tar.gz /home/apache-maven-3.8.4-bin.tar.gz
+
+# maven 预处理
+RUN      mkdir -p /opt/app/config && \
+         tar -xvf apache-maven-3.8.4-bin.tar.gz  && \
+         ls && \
+         mv /home/apache-maven-3.8.4/conf/settings.xml /home/apache-maven-3.8.4/conf/settings_old.xml && \
+         cp -rf /usr/share/maven/conf/settings.xml /home/apache-maven-3.8.4/conf/settings.xml
+
+# wvp打包
+WORKDIR /home
+RUN      /home/apache-maven-3.8.4/bin/mvn compile && \
+         /home/apache-maven-3.8.4/bin/mvn package && \
+         cp /home/target/gb28181p*.jar /opt/app/ && \
+         cp /home/src/main/resources/wvp.sqlite /opt/app/gb28181p.sqlite
+
+
+# 使用精简的基础镜像
+FROM amazoncorretto:8u312-alpine-jre
+
+ENV TZ=Asia/Shanghai
+EXPOSE 18080/tcp
+EXPOSE 5060/tcp
+EXPOSE 5060/udp
+ENV LC_ALL zh_CN.UTF-8
+
+WORKDIR /opt/app
+COPY --from=build /opt/app /opt/app/
+CMD ["/bin/sh","-c","java ${JVM_CONFIG} -jar *.jar --spring.config.location=/opt/app/config/application.yml"]

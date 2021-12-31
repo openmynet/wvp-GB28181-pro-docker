@@ -1,0 +1,8 @@
+logs
+redis/data
+wvp-GB28181
+mysql
+*.gz
+*.jar
+*.zip
+*.docker

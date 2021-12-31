@@ -1,0 +1,18 @@
+version: '3'
+services:
+
+
+  mediaserver:
+    image: panjjo/zlmediakit
+    container_name: mediaserver
+    restart: always
+    ports:
+      - "554:554"     # rtsp 端口
+      - "1935:1935"   # rtmp 端口
+      - "8000:80"     # 媒体服务器端口 保持映射一致，方便 gb28181p 的使用
+      - "10000:10000" #tcp zlmediakit默认接收视频流端口
+      - "10000:10000/udp" #udp zlmediakit默认接收视频流端口
+      - "30000-30500:30000-30500" #tcp GB28181_client -> zlmediakit
+      - "30000-30500:30000-30500/udp" #udp GB28181_client -> zlmediakit
+    volumes:
+      - ./config.ini:/zlmediakit/config.ini # 必须指定mediaserverid以确保服务的唯一性
