@@ -79,7 +79,11 @@ services:
       MEDIA_RTP_ENABLE: "false"     # 关闭多端口模式
       
       # 其他配置
-      JVM_CONFIG: "-Xms128m -Xmx256m"
+      # JVM_CONFIG: "-Xms256m -Xmx512m"
+      # JVM_CONFIG: "-Xmx1344M -Xms1344M -Xmn448M -XX:MaxMetaspaceSize=192M -XX:MetaspaceSize=192M" # 2GB memery
+      # JVM_CONFIG: "-Xmx2688M -Xms2688M -Xmn960M -XX:MaxMetaspaceSize=256M -XX:MetaspaceSize=256M" # 4GB memery
+      # JVM_CONFIG: "-Xmx5440M -Xms5440M -XX:MaxMetaspaceSize=512M -XX:MetaspaceSize=512M"          # 8GB memery
+      JVM_CONFIG: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap" # 1/4 memery
       SWAGGER-UI.ENABLED: "true"
     depends_on:
       - redis
